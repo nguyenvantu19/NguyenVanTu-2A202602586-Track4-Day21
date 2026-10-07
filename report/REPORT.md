@@ -75,6 +75,8 @@ python -m venv .venv
 `src.run_lab` kiểm tra checksum hai dataset, tạo lại 3 CSV data health, chạy kiểm tra hình học, tạo 5 baseline overlay, 2 CSV benchmark + cấu hình + biểu đồ, CSV/ảnh failure và chạy `tools/check_submission.py`. Với môi trường đã cài, chỉ cần lệnh cuối; macOS/Linux thay đường dẫn Python bằng `.venv/bin/python`.
 Chạy riêng: `python -m src.benchmark_projection --help`, `python -m src.failure_case_demo --help`; không dùng ngẫu nhiên (`seed = null`). Phiên bản thư viện được lưu trong `results/experiment_config.json`; CSV đã tái lập byte-identical trên cùng môi trường. Số báo cáo làm tròn 3 chữ số thập phân.
 
+Kiểm tra CP5: một bản clone cục bộ sạch dùng cùng môi trường Python đã chạy đủ 14 bước; 6 CSV có SHA256 giống bản gốc và 7 ảnh PNG có toàn bộ pixel giống nhau. `check_submission.py` đạt tất cả PASS; Git working tree của bản clone sạch không có thay đổi sau khi tái tạo.
+
 ## 6. Khai báo sử dụng AI
 
 | Công cụ | Dùng cho việc gì | Bạn đã kiểm chứng thế nào |
