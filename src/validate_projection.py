@@ -6,7 +6,9 @@ points. No external source code or random inputs are used.
 import numpy as np
 
 from starter.datasets import load_frame
+from starter.kitti_io import KittiObject
 from starter.projection import cam_to_image, velo_to_cam
+from src.projection_metrics import points_in_object, project_all
 
 
 def main():
@@ -40,6 +42,22 @@ def main():
         assert a.shape == (0, 2) and b.shape == (0,) and c.shape == (len(empty),)
     assert velo_to_cam(np.empty((0, 3)), fr["calib"]).shape == (0, 3)
     print("PASS depth/FOV boundaries, NaN/Inf, empty input, homogeneous translation and zero denominator")
+
+    # A 90-degree KITTI yaw swaps the long X extent onto world Z.
+    obj = KittiObject("Car", 0, 0, 0, np.array([0, 0, 10, 10]),
+                      np.array([2., 2., 4.]), np.array([0., 1., 10.]), np.pi / 2)
+    known = np.array([[0., 0., 11.5], [1.5, 0., 10.], [0., 1.1, 10.], [0., -1.1, 10.]])
+    assert points_in_object(known, obj).tolist() == [True, False, False, False]
+    # Independent full matrix chain must agree, preserving original row IDs.
+    sample = fr["points"][:128]
+    sample = sample[np.isfinite(sample).all(axis=1)]
+    full_uv, valid, inside, _ = project_all(sample, fr["calib"], fr["image"].shape)
+    xyz1 = np.column_stack((sample[:, :3], np.ones(len(sample))))
+    projected = (fr["calib"].P2 @ fr["calib"].T_cam_velo @ xyz1.T).T
+    np.testing.assert_allclose(full_uv[valid], projected[valid, :2] / projected[valid, 2:3],
+                               atol=1e-9, rtol=1e-9)
+    assert np.all(~inside | valid)
+    print("PASS rotated 3D box membership, bottom-center Y convention and independent matrix-chain projection")
 
 
 if __name__ == "__main__":

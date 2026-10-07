@@ -1,6 +1,6 @@
 # Báo cáo Day 6: Độ nhạy của phép chiếu LiDAR-camera với lệch yaw
 
-> Trạng thái: hoàn thành CP2 (projection và baseline demo). Benchmark và phân tích failure sẽ được hoàn thiện ở CP3–CP5.
+> Trạng thái: hoàn thành CP3 (15 cấu hình, 60 dòng kết quả object, CSV tái lập). Phân tích failure và báo cáo cuối sẽ hoàn thiện ở CP4–CP5.
 
 - **Họ tên:** Nguyễn Văn Tứ
 - **MSSV:** 2A202602586
@@ -17,6 +17,8 @@
 
 **Claim giả thuyết:** Trên từng frame KITTI `000019`, `000011`, `000004`, khi chỉ làm lệch yaw của extrinsic LiDAR-camera +1° quanh trục z của LiDAR, trung vị độ dịch chuyển pixel của cùng tập điểm LiDAR so với calibration gốc sẽ lớn hơn 10 pixel.
 
+**Kết quả CP3:** Claim được số liệu hỗ trợ trên cả 3 frame: trung vị tại +1° lần lượt 14,728 / 14,601 / 14,778 px. Đây là độ nhạy so với calibration gốc, chưa phải sai số so với correspondence pixel ground truth độc lập.
+
 - **Phép đo:** `d_i = sqrt((u_i(yaw) - u_i(0))² + (v_i(yaw) - v_i(0))²)`; báo `median(d_i)` theo từng frame, so ngưỡng 10 px ở +1°; chỉ cần một frame không vượt ngưỡng là claim bị bác bỏ.
 - **Tập điểm cố định:** điểm có cả 4 giá trị hữu hạn, khoảng cách Euclid XYZ 3–80 m, z_cam > 0,1 m và nằm trong ảnh ở baseline 0°. Giữ nguyên ID điểm qua mọi mức; điểm ra ngoài ảnh sau perturb vẫn tính độ dịch chuyển nếu phép chiếu hữu hạn và depth dương; báo riêng số điểm không chiếu được.
 - **Các mức thay đổi:** yaw `0°, +0,5°, +1°, +2°, +3°` bằng `perturb_extrinsic`; giữ pitch, roll và translation bằng 0, giữ nguyên ảnh, P2, R0_rect, point cloud và bộ lọc. Không lấy mẫu ngẫu nhiên.
@@ -27,7 +29,19 @@
 ## 2. Evidence
 
 CP2: kiểm tra điểm synthetic `(10, 0, 0)` cho z_cam = 9,72732 m, pixel `(613,964; 175,007)`; kiểm tra NaN/Inf, depth, biên ảnh, đầu vào rỗng và cột tịnh tiến của P2 đều đạt.
-Ba baseline KITTI `000019`, `000011`, `000004` có lần lượt 18.792 / 19.946 / 19.063 điểm trong ảnh. Benchmark yaw sẽ được bổ sung ở CP3.
+Ba baseline KITTI `000019`, `000011`, `000004` có lần lượt 18.792 / 19.946 / 19.063 điểm trong ảnh. Sweep giữ cố định ID điểm; không có điểm tham chiếu nào mất khả năng chiếu ở 15 cấu hình. Hai lần chạy cho SHA256 của cả hai CSV giống hệt nhau, không lấy mẫu ngẫu nhiên.
+
+| Yaw (°) | Median 000019 (px) | Median 000011 (px) | Median 000004 (px) | FOV 000004 (%) | Object trong box 000004 (%) |
+|---|---:|---:|---:|---:|---:|
+| 0 | 0,000 | 0,000 | 0,000 | 16,437 | 100,000 |
+| 0,5 | 7,365 | 7,297 | 7,388 | 16,428 | 94,175 |
+| 1 | 14,728 | 14,601 | 14,778 | 16,410 | 79,612 |
+| 2 | 29,447 | 29,239 | 29,556 | 16,361 | 54,369 |
+| 3 | 44,141 | 43,895 | 44,341 | 16,353 | 20,388 |
+
+Số liệu đầy đủ: [yaw_perturb_sweep.csv](../results/yaw_perturb_sweep.csv), [yaw_object_sweep.csv](../results/yaw_object_sweep.csv); cấu hình/phiên bản thư viện: [experiment_config.json](../results/experiment_config.json). FOV dùng toàn bộ điểm XYZI hữu hạn; metric object dùng tổng số điểm trong từng 3D box ở baseline làm mẫu số, gồm cả điểm ngoài ảnh. Tỷ lệ baseline thấp ở `000011` chịu ảnh hưởng của Car truncation = 0,98; cần xem từng object thay vì kết luận calibration lỗi từ số tổng hợp.
+
+![benchmark yaw](../results/figures/yaw_sweep.png)
 
 ![demo KITTI 000011](../results/figures/overlay_000011_r0.0_p0.0_y0.0_t0.0_0.0_0.0.png)
 
@@ -60,6 +74,7 @@ python -m starter.projection --data-root data/kitti_mini --frame 000019
 python -m starter.projection --data-root data/kitti_mini --frame 000011
 python -m starter.projection --data-root data/kitti_mini --frame 000004
 python -m starter.projection --data-root data/nuscenes_mini_subset --frame scene-0103_010
+python -m src.benchmark_projection
 ```
 
 ## 6. Khai báo sử dụng AI

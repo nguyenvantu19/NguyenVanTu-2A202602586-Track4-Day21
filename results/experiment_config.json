@@ -1,0 +1,36 @@
+{
+  "data_root": "data/kitti_mini",
+  "frames": [
+    "000019",
+    "000011",
+    "000004"
+  ],
+  "yaw_degrees": [
+    0.0,
+    0.5,
+    1.0,
+    2.0,
+    3.0
+  ],
+  "range_xyz_m": [
+    3.0,
+    80.0
+  ],
+  "classes": [
+    "Car",
+    "Van",
+    "Truck",
+    "Pedestrian"
+  ],
+  "min_depth_m": 0.1,
+  "pitch_roll_translation": 0,
+  "random_sampling": false,
+  "seed": null,
+  "primary_reference": "finite XYZI, baseline image FOV, XYZ range; fixed IDs",
+  "fov_denominator": "all finite XYZI points, without range filter",
+  "object_denominator": "sum of baseline 3D GT memberships, including off-image points",
+  "python": "3.14.5",
+  "numpy": "2.5.3",
+  "opencv": "5.0.0",
+  "matplotlib": "3.11.2"
+}
