@@ -1,6 +1,6 @@
 # Báo cáo Day 6: Độ nhạy của phép chiếu LiDAR-camera với lệch yaw
 
-> Trạng thái: hoàn thành CP1 (chọn topic, dataset và claim giả thuyết). Các mục bằng chứng, failure case và khuyến nghị sẽ được hoàn thiện ở CP2–CP5; chưa có kết quả benchmark để kết luận claim đúng hay sai.
+> Trạng thái: hoàn thành CP2 (projection và baseline demo). Benchmark và phân tích failure sẽ được hoàn thiện ở CP3–CP5.
 
 - **Họ tên:** Nguyễn Văn Tứ
 - **MSSV:** 2A202602586
@@ -26,13 +26,12 @@
 
 ## 2. Evidence
 
-Bảng hoặc plot số liệu, kèm ảnh/video demo. Ghi rõ đường dẫn file trong `results/`.
+CP2: kiểm tra điểm synthetic `(10, 0, 0)` cho z_cam = 9,72732 m, pixel `(613,964; 175,007)`; kiểm tra NaN/Inf, depth, biên ảnh, đầu vào rỗng và cột tịnh tiến của P2 đều đạt.
+Ba baseline KITTI `000019`, `000011`, `000004` có lần lượt 18.792 / 19.946 / 19.063 điểm trong ảnh. Benchmark yaw sẽ được bổ sung ở CP3.
 
-| Cấu hình / mức perturb | Metric 1 | Metric 2 | Ghi chú |
-|---|---|---|---|
-| [ĐIỀN] | | | |
+![demo KITTI 000011](../results/figures/overlay_000011_r0.0_p0.0_y0.0_t0.0_0.0_0.0.png)
 
-![demo](../results/figures/[ĐIỀN].png)
+Baseline gần: [000019](../results/figures/overlay_000019_r0.0_p0.0_y0.0_t0.0_0.0_0.0.png); xa: [000004](../results/figures/overlay_000004_r0.0_p0.0_y0.0_t0.0_0.0_0.0.png). Nguồn ảnh: KITTI Vision Benchmark Suite.
 
 ## 3. Failure case
 
@@ -55,6 +54,12 @@ Các lệnh kiểm tra dữ liệu phục vụ CP1, chạy từ thư mục gốc
 ```bash
 python -m starter.data_health --data-root data/synthetic --out results/data_health.csv
 python -m starter.data_health --data-root data/kitti_mini --out results/data_health_kitti.csv
+python -m src.validate_projection
+python -m starter.projection --data-root data/synthetic --frame 000000
+python -m starter.projection --data-root data/kitti_mini --frame 000019
+python -m starter.projection --data-root data/kitti_mini --frame 000011
+python -m starter.projection --data-root data/kitti_mini --frame 000004
+python -m starter.projection --data-root data/nuscenes_mini_subset --frame scene-0103_010
 ```
 
 ## 6. Khai báo sử dụng AI
