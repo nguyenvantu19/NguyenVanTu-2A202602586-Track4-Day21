@@ -1,6 +1,6 @@
 # Báo cáo Day 6: Độ nhạy của phép chiếu LiDAR-camera với lệch yaw
 
-> Trạng thái: hoàn thành CP3 (15 cấu hình, 60 dòng kết quả object, CSV tái lập). Phân tích failure và báo cáo cuối sẽ hoàn thiện ở CP4–CP5.
+> Trạng thái: hoàn thành CP4 (benchmark và failure Geometry/Metric có ảnh và số liệu). Báo cáo cuối và kiểm tra nộp bài sẽ hoàn thiện ở CP5.
 
 - **Họ tên:** Nguyễn Văn Tứ
 - **MSSV:** 2A202602586
@@ -49,11 +49,14 @@ Baseline gần: [000019](../results/figures/overlay_000019_r0.0_p0.0_y0.0_t0.0_0
 
 ## 3. Failure case
 
-Nêu khi nào hệ thống hoặc phương pháp fail, vì sao fail, và liên hệ tới lớp nào trong 6 lớp debug: I/O, Geometry, Time, Preprocess, Model, Metric.
+- **Geometry:** KITTI `000004`, Car object #1 ở z_cam = 51,17 m: yaw +3° làm số điểm của cùng 3D box còn nằm trong 2D box giảm từ **26/26 xuống 0/26**. Ảnh dưới chỉ vẽ đúng 26 ID điểm này trên cùng ảnh, cùng GT box; dữ liệu gốc không bị thay đổi.
+- **Nguyên nhân:** xoay extrinsic quanh z LiDAR làm phép chiếu dịch ngang; box xe xa chỉ rộng 40,97 px. Sai lệch góc tạo độ dịch pixel xấp xỉ theo tiêu cự × góc; vật xa có box nhỏ nên mất tỉ lệ điểm trong box lớn hơn. Đây là drift được chủ động đưa vào code, không phải bằng chứng calibration KITTI gốc hỏng.
+- **Metric:** FOV toàn frame chỉ giảm từ 16,437% xuống 16,353%, tức **0,0845 điểm phần trăm**. Quy tắc minh hoạ “báo động nếu FOV giảm > 1 điểm phần trăm” không báo động dù cả 26 điểm đã rời box; ngưỡng này chưa được hiệu chỉnh bằng tập validation.
+- **Cách phát hiện/khắc phục:** kiểm tra alignment theo từng object, theo nhóm range và edge trên nhiều frame; loại/ghi riêng object bị truncation hoặc quá ít điểm. Khi phát hiện drift kéo dài, kiểm tra gá sensor và hiệu chỉnh extrinsic; cần xác nhận thêm timestamp và ego-motion trước khi quy lỗi cho Geometry.
 
-![failure](../results/figures/fail_[ĐIỀN].png)
+![failure: cùng 26 điểm trước và sau lệch yaw](../results/figures/fail_01_yaw_3deg_000004_object_1.png)
 
-[ĐIỀN]
+Số liệu failure: [failure_case.csv](../results/failure_case.csv). Nguồn ảnh: KITTI Vision Benchmark Suite.
 
 ## 4. Khuyến nghị nếu triển khai thật
 
@@ -75,6 +78,7 @@ python -m starter.projection --data-root data/kitti_mini --frame 000011
 python -m starter.projection --data-root data/kitti_mini --frame 000004
 python -m starter.projection --data-root data/nuscenes_mini_subset --frame scene-0103_010
 python -m src.benchmark_projection
+python -m src.failure_case_demo
 ```
 
 ## 6. Khai báo sử dụng AI
